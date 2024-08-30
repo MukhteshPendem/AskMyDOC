@@ -1,16 +1,19 @@
 import streamlit as st
 import time
-from src.helper import get_pdf_text
+from src.helper import get_pdf_text, get_chunks,get_vector_store,get_conversational_chain,get_answer
 
 
 def process_pdf(pdf_docs):
     if pdf_docs:
         with st.spinner('Processing...'):
             
-            output = get_pdf_text(pdf_docs)
-           
+            text = get_pdf_text(pdf_docs)
+            chunk = get_chunks(text=text)
+            vectorstore = get_vector_store(chunks=chunk)
+            # chain = get_conversational_chain(vector_store=vectorstore)
+            answer = get_answer("what are the skills ?")
             st.write("Extracted Text Preview:")
-            st.write(output[:500])  
+            st.write(answer)  
             st.success('File processed successfully!')
     else:
         st.warning('Please upload a PDF file before submitting.')

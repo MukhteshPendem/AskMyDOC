@@ -2,11 +2,13 @@ import os
 
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.llms import openai
-from langchain.vectorstores import faiss
-# Import conversational chain class (check the correct class name in documentation)
-from langchain.chains import conversational_retrieval
+from langchain.embeddings import GooglePalmEmbeddings
+
+from langchain_google_vertexai import VertexAI
+
+from  langchain_community.vectorstores import FAISS
+
+from langchain.chains.question_answering import load_qa_chain
 from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 
@@ -32,16 +34,21 @@ def get_chunks(text):
 
 
 def get_vector_store(chunks):
-    embeddings = OpenAIEmbeddings()
-    vector_store = faiss.from_texts(chunks,embeddings=embeddings)
+    embeddings = GooglePalmEmbeddings()
+    vector_store = FAISS.from_texts(chunks,embedding=embeddings)
     return vector_store
 
 
-def get_conversational_chunk(vector_store):
-    llm = openai()
-    memory = ConversationBufferMemory(memory_key="chat_history",return_messages=True)
-    conversation_chain = conversational_retrieval
+def get_conversational_chain():
+    
+    
+    llm = VertexAI(model_name="gemini-pro",project_id='original-seeker-426515-t5')
+    conversation_chain = load_qa_chain(llm=llm,chain_type='stuff')
+    return conversation_chain
 
-
-
+def get_answer(query):
+    conversation_chain = get_conversational_chain()
+    memory = ConversationBufferMemory()
+    answer = conversation_chain.run(query, memory=memory)
+    return answer
 
